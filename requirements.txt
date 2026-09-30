@@ -1,0 +1,5 @@
+fastapi==0.142.*
+uvicorn[standard]==0.32.*
+asyncpg==0.30.*
+shapely==2.1.*
+pydantic==2.13.*

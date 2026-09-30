@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-site_safety}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-site_safety}
+      POSTGRES_DB: ${POSTGRES_DB:-site_safety}
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "${POSTGRES_PORT_PUBLISH:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-site_safety} -d ${POSTGRES_DB:-site_safety}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER:-site_safety}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-site_safety}
+      POSTGRES_DB: ${POSTGRES_DB:-site_safety}
+      # 或直接给出完整连接串（优先级最高）：
+      # DATABASE_URL: postgresql://site_safety:site_safety@db:5432/site_safety
+      HOST: 0.0.0.0
+      PORT: "8000"
+    ports:
+      - "${API_PORT:-8000}:8000"
+
+volumes:
+  pgdata:
